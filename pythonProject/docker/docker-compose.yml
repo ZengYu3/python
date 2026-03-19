@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  # -----------------------------
+  # FastAPI API Service
+  # -----------------------------
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: computer_use_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - db
+    volumes:
+      - ../:/app  # mount code for local development
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # -----------------------------
+  # Agent Container Skeleton
+  # -----------------------------
+  agent:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.agent
+    container_name: agent_skeleton
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Dummy entrypoint for testing; replace with actual agent loop later
+    command: tail -f /dev/null
+
+  # -----------------------------
+  # PostgreSQL Database (optional)
+  # -----------------------------
+  db:
+    image: postgres:16
+    container_name: computer_use_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: computer_use
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+# -----------------------------
+# Volumes
+# -----------------------------
+volumes:
+  pgdata:
